@@ -9,13 +9,15 @@ counter_val=0
 gap=0
 numberline=0
 cycle_time=1
+score=0
+speed_factor=1
 
 setup() {
     counter_val=0
     gap=20
     game_continues=1
     max_val=9
-    min_val=1
+    min_val=0
     numberline=$(( $RANDOM % $max_val + $min_val ))
     cycle_time=1
     SECONDS=0
@@ -33,20 +35,36 @@ remove_digit() {
             new_numberline=$new_numberline$numberline_digit
         else
             ((gap+=1))
+            ((score+=1))
+            update_game_speed
         fi
     }
     numberline=$new_numberline
 }
 
+update_game_speed() {
+    if [[ $score -lt 10 ]]; then
+        speed_factor=1
+    elif [[ $score -lt 20 ]]; then
+        speed_factor=2
+    elif [[ $score -lt 30 ]]; then
+        speed_factor=3
+    elif [[ $score -lt 40 ]]; then
+        speed_factor=4
+    else
+        speed_factor=5
+    fi
+}
+
 delete_line() {
     # delete line and write string
-    for ((i=0; i < 40; i++)) {
+    for ((i=0; i < 80; i++)) {
         echo -n -e "\b \b"
     }
 }
 
 write_scene() {
-    # pass in counter value, gap size, and numberline
+    # pass in counter value, gap size, numberline, score
     delete_line
     echo -n -e $1
     g=$2
@@ -54,8 +72,11 @@ write_scene() {
     do
         echo -n -e " "
     done
-
     echo -n -e $3
+    echo -n -e " score: "
+    echo -n -e $4
+    echo -n -e " speed: "
+    echo -n -e $speed_factor
 }
 
 main() {
@@ -68,12 +89,12 @@ main() {
             if [ "$counter_val" -gt 9 ]; then
                 counter_val=0
             fi
-            write_scene $counter_val $gap $numberline
+            write_scene $counter_val $gap $numberline $score
         fi
 
         if [ "$input" = "s" ]; then
             remove_digit $counter_val $numberline
-            write_scene $counter_val $gap $numberline
+            write_scene $counter_val $gap $numberline $score
         fi
         
         if [[ "$gap" -lt 1 ]]; then
@@ -83,10 +104,12 @@ main() {
         fi
 
         if [[ "$SECONDS" -gt $cycle_time ]]; then
-            ((gap-=1))
-            numberline=$numberline$(( $RANDOM % $max_val + $min_val ))
+            for ((i=0; i < $speed_factor; i++ )) {
+                ((gap-=1))
+                numberline=$numberline$(( $RANDOM % $max_val + $min_val ))
+            }
             SECONDS=0
-            write_scene $counter_val $gap $numberline
+            write_scene $counter_val $gap $numberline $score
         fi
     done
 }
