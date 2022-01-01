@@ -75,15 +75,13 @@ write_scene() {
     echo -n -e $3
     echo -n -e " score: "
     echo -n -e $4
-    echo -n -e " speed: "
-    echo -n -e $speed_factor
 }
 
 main() {
     setup
     while  [[ $gap -gt 1 ]]
     do
-        read -rsn1 -t 0.01 input
+        read -rsn1 -t 0.01 input &>> errors.txt
         if [ "$input" = "w" ]; then
             ((counter_val+=1))
             if [ "$counter_val" -gt 9 ]; then
@@ -98,9 +96,9 @@ main() {
         fi
         
         if [[ "$gap" -lt 1 ]]; then
-           game_continues=0
-            echo "End"
-         exit 0
+            game_continues=0
+            echo -e "End\n"
+            exit 0
         fi
 
         if [[ "$SECONDS" -gt $cycle_time ]]; then
@@ -112,6 +110,8 @@ main() {
             write_scene $counter_val $gap $numberline $score
         fi
     done
+    echo -e "End\n"
+    exit 0
 }
 
 main
