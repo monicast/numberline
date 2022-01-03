@@ -43,17 +43,7 @@ remove_digit() {
 }
 
 update_game_speed() {
-    if [[ $score -lt 10 ]]; then
-        speed_factor=1
-    elif [[ $score -lt 20 ]]; then
-        speed_factor=2
-    elif [[ $score -lt 30 ]]; then
-        speed_factor=3
-    elif [[ $score -lt 40 ]]; then
-        speed_factor=4
-    else
-        speed_factor=5
-    fi
+    speed_factor=$((1+score/10))
 }
 
 delete_line() {
@@ -81,7 +71,7 @@ main() {
     setup
     while  [[ $gap -gt 1 ]]
     do
-        read -rsn1 -t 0.01 input &>> errors.txt
+        read -rsn1 -t 0.01 input &>> /dev/null
         if [ "$input" = "w" ]; then
             ((counter_val+=1))
             if [ "$counter_val" -gt 9 ]; then
@@ -95,14 +85,9 @@ main() {
             write_scene $counter_val $gap $numberline $score
         fi
         
-        if [[ "$gap" -lt 1 ]]; then
-            game_continues=0
-            echo -e "End\n"
-            exit 0
-        fi
-
         if [[ "$SECONDS" -gt $cycle_time ]]; then
-            for ((i=0; i < $speed_factor; i++ )) {
+            num_new_nums=$(( $RANDOM % $speed_factor + 1 ))
+            for ((i=0; i < $num_new_nums; i++ )) {
                 ((gap-=1))
                 numberline=$numberline$(( $RANDOM % $max_val + $min_val ))
             }
@@ -110,7 +95,7 @@ main() {
             write_scene $counter_val $gap $numberline $score
         fi
     done
-    echo -e "End\n"
+    echo -e "\nEnd\n"
     exit 0
 }
 
